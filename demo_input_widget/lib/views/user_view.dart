@@ -1,6 +1,12 @@
+import 'package:demo_input_widget/views/widgets/checkbox_radio_switch.dart';
+import 'package:demo_input_widget/views/widgets/custom_date_picker.dart';
+import 'package:demo_input_widget/views/widgets/custom_dropdown.dart';
+import 'package:demo_input_widget/views/widgets/custom_slider.dart';
+import 'package:demo_input_widget/views/widgets/user_form.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../data/models/user.dart';
+import '../viewmodels/input_viewmodel.dart';
 import '../viewmodels/user_viewmodel.dart';
 
 class UserView extends ConsumerWidget {
@@ -9,6 +15,16 @@ class UserView extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final userListAsync = ref.watch(userViewModelProvider);
+// Đọc toàn bộ trạng thái bộ lọc từ input_viewmodel
+    final searchQuery = ref.watch(nameProvider).toLowerCase();
+    final selectedCity = ref.watch(cityProvider);
+    final onlyWithEmail = ref.watch(notificationProvider);
+    final currentAgeFilter = ref.watch(ageProvider);
+    final salaryRange = ref.watch(salaryProvider);
+    final selectedGender = ref.watch(genderProvider);
+    final isHiddenEmail = ref.watch(agreeProvider);
+    final filterDate = ref.watch(selectedDateProvider);
+    final filterTime = ref.watch(selectedTimeProvider);
 
     return Scaffold(
       backgroundColor: const Color(0xFF0F172A), // Modern dark slate background
@@ -26,58 +42,154 @@ class UserView extends ConsumerWidget {
           ),
         ],
       ),
-      body: userListAsync.when(
-        data: (users) {
-          if (users.isEmpty) {
-            return const Center(
-              child: Text(
-                'No users found.',
-                style: TextStyle(color: Colors.white54, fontSize: 16),
-              ),
-            );
-          }
-          return RefreshIndicator(
-            onRefresh: () => ref.read(userViewModelProvider.notifier).refresh(),
-            color: Colors.cyanAccent,
-            backgroundColor: const Color(0xFF1E293B),
-            child: ListView.builder(
-              padding: const EdgeInsets.all(16.0),
-              itemCount: users.length,
-              itemBuilder: (context, index) {
-                final user = users[index];
-                return _buildUserCard(context, ref, user);
-              },
+      body: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // ==================== 1. THANH BÊN TRÁI: SIDEBAR FILTER ====================
+          Container(
+            width: 340,
+            decoration: const BoxDecoration(
+              color: Color(0xFF1E293B),
+              border: Border(right: BorderSide(color: Colors.white10)),
             ),
-          );
-        },
-        loading: () => const Center(
-          child: CircularProgressIndicator(
-            valueColor: AlwaysStoppedAnimation<Color>(Colors.cyanAccent),
-          ),
-        ),
-        error: (err, stack) => Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Icon(Icons.error_outline, color: Colors.redAccent, size: 48),
-              const SizedBox(height: 16),
-              Text(
-                'Error: $err',
-                style: const TextStyle(color: Colors.white70),
-                textAlign: TextAlign.center,
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'FILTERS PANEL',
+                    style: TextStyle(color: Colors.cyanAccent, fontWeight: FontWeight.bold, fontSize: 16),
+                  ),
+                  const Divider(color: Colors.white24, height: 24),
+
+        // 1. DROPDOWN + DROPDOWNFORMFIELD
+                  const CustomDropdown(),
+                  const Divider(color: Colors.white10, height: 32),
+
+        // 2. CHECKBOX + RADIO + SWITCH
+                  const CheckboxRadioSwitch(),
+                  const Divider(color: Colors.white10, height: 32),
+
+        // 3. SLIDER + RANGESLIDER
+                  const CustomSliderWidget(),
+                  const Divider(color: Colors.white10, height: 32),
+
+        // 4. DATEPICKER + TIMEPICKER
+                  const CustomDatePicker(),
+                ],
               ),
-              const SizedBox(height: 16),
-              ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.cyanAccent,
-                  foregroundColor: const Color(0xFF0F172A),
+            ),
+          ),
+      // ==================== 2. Ở GIỮA & BÊN PHẢI: TRÊN SEARCH, DƯỚI LIST ====================
+      Expanded(
+        child: Column(
+          children: [
+            // THANH SEARCH TRÊN CÙNG
+            Container(
+              padding: const EdgeInsets.all(16),
+              color: const Color(0xFF0F172A),
+              child: TextField(
+                style: const TextStyle(color: Colors.white),
+                decoration: InputDecoration(
+                  hintText: 'Search user by name or username...',
+                  hintStyle: const TextStyle(color: Colors.white38),
+                  prefixIcon: const Icon(Icons.search, color: Colors.cyanAccent),
+                  filled: true,
+                  fillColor: const Color(0xFF1E293B),
+                  enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                  focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Colors.cyanAccent)),
                 ),
-                onPressed: () => ref.read(userViewModelProvider.notifier).refresh(),
-                child: const Text('Try Again'),
+                onChanged: (value) => ref.read(nameProvider.notifier).state = value,
               ),
-            ],
-          ),
-        ),
+            ),
+              Expanded(
+                child: userListAsync.when(
+                  data: (users) {
+                    // BƯỚC 1: Lấy các giá trị đang nhập từ các ô lọc trên UI
+                    final searchQuery = ref.watch(nameProvider).toLowerCase();
+                    final selectedCity = ref.watch(cityProvider);
+                    final onlyWithEmail = ref.watch(notificationProvider);
+
+                    // BƯỚC 2: Thực hiện lọc mảng dữ liệu users gốc dựa trên điều kiện bạn muốn
+                    final filteredUsers = users.where((user) {
+                      // Lọc theo ký tự tìm kiếm của TextField (Tìm cả Name và Username)
+                      final matchesSearch = user.name.toLowerCase().contains(searchQuery) ||
+                          user.username.toLowerCase().contains(searchQuery);
+
+                      // Lọc theo Thành phố được chọn từ Dropdown (Nếu chưa chọn dropdown thì bỏ qua)
+                      final matchesCity = selectedCity == null ||
+                          (user.address?.city == selectedCity);
+
+                      // Lọc theo nút Switch (Nếu bật switch thì chỉ giữ lại các user có email)
+                      final matchesEmail = !onlyWithEmail || (user.email != null && user.email!.isNotEmpty);
+                      // Giả lập logic lọc tuổi: Lấy ký tự độ dài tên làm tuổi ngẫu nhiên để test bộ lọc slider
+                      final mockAge = (user.name.length * 3) % 60 + 18;
+                      final matchesAge = mockAge <= currentAgeFilter;
+                      return matchesSearch && matchesCity && matchesEmail;
+                    }).toList();
+                    //
+
+                    if (filteredUsers.isEmpty) {
+                      return const Center(
+                        child: Text(
+                          'No users found.',
+                          style: TextStyle(color: Colors.white54, fontSize: 16),
+                        ),
+                      );
+                    }
+                    return RefreshIndicator(
+                      onRefresh: () => ref.read(userViewModelProvider.notifier).refresh(),
+                      color: Colors.cyanAccent,
+                      backgroundColor: const Color(0xFF1E293B),
+                      child: ListView.builder(
+                        //
+                        shrinkWrap: true,
+                        physics: NeverScrollableScrollPhysics(),
+                        //
+                        padding: const EdgeInsets.all(16.0),
+                        itemCount: filteredUsers.length,
+                        itemBuilder: (context, index) {
+                          final user = filteredUsers[index];
+                          return _buildUserCard(context, ref, user, isHiddenEmail);
+                        },
+                      ),
+                    );
+                  },
+                  loading: () => const Center(
+                    child: CircularProgressIndicator(
+                      valueColor: AlwaysStoppedAnimation<Color>(Colors.cyanAccent),
+                    ),
+                  ),
+                  error: (err, stack) => Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(Icons.error_outline, color: Colors.redAccent, size: 48),
+                        const SizedBox(height: 16),
+                        Text(
+                          'Error: $err',
+                          style: const TextStyle(color: Colors.white70),
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 16),
+                        ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.cyanAccent,
+                            foregroundColor: const Color(0xFF0F172A),
+                          ),
+                          onPressed: () => ref.read(userViewModelProvider.notifier).refresh(),
+                          child: const Text('Try Again'),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              ],
+              ),
+            ),
+        ],
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _showUserDialog(context, ref),
@@ -89,7 +201,7 @@ class UserView extends ConsumerWidget {
     );
   }
 
-  Widget _buildUserCard(BuildContext context, WidgetRef ref, User user) {
+  Widget _buildUserCard(BuildContext context, WidgetRef ref, User user, bool isHiddenEmail) {
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
@@ -137,8 +249,13 @@ class UserView extends ConsumerWidget {
             if (user.email != null) ...[
               const SizedBox(height: 2),
               Text(
-                user.email!,
-                style: const TextStyle(color: Colors.cyanAccent, fontSize: 12),
+                // user.email!,
+                isHiddenEmail ? '********@gmail.com' : user.email!,
+                style:  TextStyle(
+                    color: Colors.cyanAccent,
+                    fontSize: 12,
+                    fontStyle: isHiddenEmail ? FontStyle.italic : FontStyle.normal,
+                ),
               ),
             ],
           ],
@@ -165,6 +282,9 @@ class UserView extends ConsumerWidget {
     final usernameController = TextEditingController(text: user?.username ?? '');
     final emailController = TextEditingController(text: user?.email ?? '');
 
+    // 1. TẠO KEY ĐỂ QUẢN LÝ FORM VALIDATION
+    final formKey = GlobalKey<FormState>();
+
     showDialog(
       context: context,
       builder: (context) {
@@ -176,15 +296,18 @@ class UserView extends ConsumerWidget {
             style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
           ),
           content: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                _buildTextField(nameController, 'Name (Required)', Icons.person),
-                const SizedBox(height: 16),
-                _buildTextField(usernameController, 'Username (Required)', Icons.alternate_email),
-                const SizedBox(height: 16),
-                _buildTextField(emailController, 'Email (Optional)', Icons.email_outlined),
-              ],
+            child: Form(
+              key: formKey,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  _buildTextField(nameController, 'Name (Required)', Icons.person),
+                  const SizedBox(height: 16),
+                  _buildTextField(usernameController, 'Username (Required)', Icons.alternate_email),
+                  const SizedBox(height: 16),
+                  _buildTextField(emailController, 'Email (Optional)', Icons.email_outlined),
+                ],
+              ),
             ),
           ),
           actions: [
@@ -208,6 +331,11 @@ class UserView extends ConsumerWidget {
                   );
                   return;
                 }
+                // 3. THAY THẾ ĐOẠN IF CHECK CŨ BẰNG FORM VALIDATION
+                // Nếu các TextFormField báo có lỗi (trống dữ liệu), hàm sẽ dừng lại tại đây và tự hiện viền đỏ
+                // if (!formKey.currentState!.validate()) {
+                //   return;
+                // }
 
                 Navigator.pop(context);
 
@@ -237,6 +365,14 @@ class UserView extends ConsumerWidget {
                       phone: user.phone,
                       website: user.website,
                       company: user.company,
+                      // Truyền tiếp các thuộc tính sang để không bị mất dữ liệu cũ
+                      gender: user.gender,
+                      age: user.age,
+                      salary: user.salary,
+                      birthDate: user.birthDate,
+                      shiftStart: user.shiftStart,
+                      shiftEnd: user.shiftEnd,
+                      themeMode: user.themeMode, // Giữ nguyên cấu hình theme cũ của họ
                     );
                     await ref.read(userViewModelProvider.notifier).updateUser(updatedUser);
                     if (context.mounted) {
@@ -261,10 +397,18 @@ class UserView extends ConsumerWidget {
     );
   }
 
-  Widget _buildTextField(TextEditingController controller, String label, IconData icon) {
-    return TextField(
+  Widget _buildTextField(TextEditingController controller, String label, IconData icon, {bool isRequired = true}) {
+    return TextFormField(
       controller: controller,
       style: const TextStyle(color: Colors.white),
+      // Thêm chức năng Validator của TextFormField
+      validator: (value) {
+        if (isRequired && (value == null || value.trim().isEmpty)) {
+          return '$label is required'; // Trả về câu thông báo lỗi
+        }
+        return null; // Không có lỗi
+      },
+
       decoration: InputDecoration(
         labelText: label,
         labelStyle: const TextStyle(color: Colors.white54),
@@ -278,6 +422,15 @@ class UserView extends ConsumerWidget {
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: const BorderSide(color: Colors.cyanAccent),
+        ),
+        // Thêm hiển thị viền đỏ khi có lỗi validation
+        errorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: Colors.redAccent),
+        ),
+        focusedErrorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: Colors.redAccent, width: 2),
         ),
       ),
     );

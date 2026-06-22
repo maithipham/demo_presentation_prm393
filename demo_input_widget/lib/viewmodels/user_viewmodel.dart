@@ -1,7 +1,6 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../data/models/user.dart';
 import '../data/repositories/user_repository.dart';
-
 part 'user_viewmodel.g.dart';
 
 @riverpod
@@ -38,11 +37,10 @@ class UserViewModel extends _$UserViewModel {
     final newUser = await repository.createUser(user);
 
     // Update local cache
-    _cachedUsers.add(newUser);
+    _cachedUsers.insert(0, newUser);
 
     // Notify view with updated cache
     state = AsyncValue.data(List.from(_cachedUsers));
-
     return newUser;
   }
 
