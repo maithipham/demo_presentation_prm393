@@ -13,10 +13,10 @@ final genderProvider = StateProvider<String>((ref) => 'All');
 
 final notificationProvider = StateProvider<bool>((ref) => false);
 
-final ageProvider = StateProvider<double>((ref) => 100);
+final ageProvider = StateProvider<double>((ref) => 11);
 
 final salaryProvider = StateProvider<RangeValues>(
-      (ref) => const RangeValues(0, 10000),
+      (ref) => const RangeValues(1, 10),
 );
 
 final selectedDateProvider = StateProvider<DateTime?>(

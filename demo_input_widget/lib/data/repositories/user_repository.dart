@@ -17,6 +17,11 @@ Future<List<User>> fetchUsersList(Ref ref) {
   return userRepository.fetchUsers();
 }
 
+final fetchUsersSizeProvider = FutureProvider<int>((ref) {
+  final userRepository = ref.watch(userRepositoryProvider);
+  return userRepository.size();
+});
+
 class UserRepository {
   final http.Client _client;
 
@@ -92,5 +97,11 @@ class UserRepository {
     if (response.statusCode != 200) {
       throw Exception('Failed to delete user: status code ${response.statusCode}');
     }
+  }
+
+  /// Returns the number of users
+  Future<int> size() async {
+    final users = await fetchUsers();
+    return users.length;
   }
 }

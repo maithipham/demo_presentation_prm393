@@ -123,10 +123,14 @@ class UserView extends ConsumerWidget {
 
                       // Lọc theo nút Switch (Nếu bật switch thì chỉ giữ lại các user có email)
                       final matchesEmail = !onlyWithEmail || (user.email != null && user.email!.isNotEmpty);
-                      // Giả lập logic lọc tuổi: Lấy ký tự độ dài tên làm tuổi ngẫu nhiên để test bộ lọc slider
-                      final mockAge = (user.name.length * 3) % 60 + 18;
-                      final matchesAge = mockAge <= currentAgeFilter;
-                      return matchesSearch && matchesCity && matchesEmail;
+
+
+                      // Lọc theo Slider: Lấy ra người dùng có ID < currentAgeFilter
+                      final matchesAge = user.id < currentAgeFilter;
+                      // Lọc theo RangeSlider: Lấy ra người dùng theo ID từ salaryRange.start đến salaryRange.end
+                      final matchesSalary = user.id >= salaryRange.start && user.id <= salaryRange.end;
+
+                      return matchesSearch && matchesCity && matchesEmail && matchesAge && matchesSalary;
                     }).toList();
                     //
 
@@ -143,10 +147,7 @@ class UserView extends ConsumerWidget {
                       color: Colors.cyanAccent,
                       backgroundColor: const Color(0xFF1E293B),
                       child: ListView.builder(
-                        //
-                        shrinkWrap: true,
-                        physics: NeverScrollableScrollPhysics(),
-                        //
+                        physics: const AlwaysScrollableScrollPhysics(),
                         padding: const EdgeInsets.all(16.0),
                         itemCount: filteredUsers.length,
                         itemBuilder: (context, index) {
@@ -230,13 +231,36 @@ class UserView extends ConsumerWidget {
             ),
           ),
         ),
-        title: Text(
-          user.name,
-          style: const TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.bold,
-            fontSize: 16,
-          ),
+        title: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+              decoration: BoxDecoration(
+                color: Colors.cyanAccent.withAlpha(40),
+                borderRadius: BorderRadius.circular(4),
+              ),
+              child: Text(
+                'ID: ${user.id}',
+                style: const TextStyle(
+                  color: Colors.cyanAccent,
+                  fontSize: 11,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                user.name,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
+                ),
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ],
         ),
         subtitle: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
