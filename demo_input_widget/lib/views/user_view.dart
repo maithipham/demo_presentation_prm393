@@ -130,7 +130,30 @@ class UserView extends ConsumerWidget {
                       // Lọc theo RangeSlider: Lấy ra người dùng theo ID từ salaryRange.start đến salaryRange.end
                       final matchesSalary = user.id >= salaryRange.start && user.id <= salaryRange.end;
 
-                      return matchesSearch && matchesCity && matchesEmail && matchesAge && matchesSalary;
+                      final matchesDate =
+                          filterDate == null ||
+                              (user.birthDate != null &&
+                                  user.birthDate!.year == filterDate.year &&
+                                  user.birthDate!.month == filterDate.month &&
+                                  user.birthDate!.day == filterDate.day);
+                      final selectedTimeString =
+                      filterTime == null
+                          ? null
+                          : '${filterTime.hour.toString().padLeft(2, '0')}:'
+                          '${filterTime.minute.toString().padLeft(2, '0')}';
+
+                      final matchesTime =
+                          selectedTimeString == null ||
+                              user.shiftStart == selectedTimeString;
+
+
+                      return matchesSearch &&
+                          matchesCity &&
+                          matchesEmail &&
+                          matchesAge &&
+                          matchesSalary &&
+                          matchesDate &&
+                          matchesTime;
                     }).toList();
                     //
 
@@ -266,19 +289,43 @@ class UserView extends ConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const SizedBox(height: 4),
+
             Text(
               '@${user.username}',
-              style: const TextStyle(color: Colors.white54, fontSize: 13),
+              style: const TextStyle(
+                color: Colors.white54,
+                fontSize: 13,
+              ),
             ),
+
+            Text(
+              'Birth: ${user.birthDate}',
+              style: const TextStyle(
+                color: Colors.orangeAccent,
+                fontSize: 12,
+              ),
+            ),
+
+            Text(
+              'Shift: ${user.shiftStart} - ${user.shiftEnd}',
+              style: const TextStyle(
+                color: Colors.greenAccent,
+                fontSize: 12,
+              ),
+            ),
+
             if (user.email != null) ...[
               const SizedBox(height: 2),
               Text(
-                // user.email!,
-                isHiddenEmail ? '********@gmail.com' : user.email!,
-                style:  TextStyle(
-                    color: Colors.cyanAccent,
-                    fontSize: 12,
-                    fontStyle: isHiddenEmail ? FontStyle.italic : FontStyle.normal,
+                isHiddenEmail
+                    ? '********@gmail.com'
+                    : user.email!,
+                style: TextStyle(
+                  color: Colors.cyanAccent,
+                  fontSize: 12,
+                  fontStyle: isHiddenEmail
+                      ? FontStyle.italic
+                      : FontStyle.normal,
                 ),
               ),
             ],

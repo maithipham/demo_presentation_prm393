@@ -2,58 +2,103 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../viewmodels/input_viewmodel.dart';
 
-
 class CustomDatePicker extends ConsumerWidget {
-  const CustomDatePicker({
-    super.key,
-  });
+  const CustomDatePicker({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref,) {
-    return Column(
-      children: [
-        ElevatedButton(
-          onPressed: () async {
-            final date =
-            await showDatePicker(
-              context: context,
-              initialDate:
-              DateTime.now(),
-              firstDate:
-              DateTime(2020),
-              lastDate:
-              DateTime(2030),
-            );
+  Widget build(BuildContext context, WidgetRef ref) {
+    final selectedDate = ref.watch(selectedDateProvider);
+    final selectedTime = ref.watch(selectedTimeProvider);
 
-            ref
-                .read(
-              selectedDateProvider
-                  .notifier,
-            )
-                .state = date;
-          },
-          child:
-          const Text('Date'),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'DATE & TIME FILTER',
+          style: TextStyle(
+            color: Colors.cyanAccent,
+            fontWeight: FontWeight.bold,
+          ),
         ),
 
-        ElevatedButton(
-          onPressed: () async {
-            final time =
-            await showTimePicker(
+        const SizedBox(height: 12),
+
+        // DATE
+        InkWell(
+          onTap: () async {
+            final date = await showDatePicker(
               context: context,
-              initialTime:
-              TimeOfDay.now(),
+              initialDate: DateTime.now(),
+              firstDate: DateTime(1900),
+              lastDate: DateTime.now(),
             );
 
-            ref
-                .read(
-              selectedTimeProvider
-                  .notifier,
-            )
-                .state = time;
+            ref.read(selectedDateProvider.notifier).state = date;
           },
-          child:
-          const Text('Time'),
+          child: Container(
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              color: const Color(0xFF0F172A),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: Colors.white10),
+            ),
+            child: Row(
+              children: [
+                const Icon(
+                  Icons.calendar_month,
+                  color: Colors.cyanAccent,
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    selectedDate == null
+                        ? 'Select birth date'
+                        : '${selectedDate.day}/${selectedDate.month}/${selectedDate.year}',
+                    style: const TextStyle(color: Colors.white),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+
+        const SizedBox(height: 12),
+
+        // TIME
+        InkWell(
+          onTap: () async {
+            final time = await showTimePicker(
+              context: context,
+              initialTime: TimeOfDay.now(),
+            );
+
+            ref.read(selectedTimeProvider.notifier).state = time;
+          },
+          child: Container(
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              color: const Color(0xFF0F172A),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: Colors.white10),
+            ),
+            child: Row(
+              children: [
+                const Icon(
+                  Icons.access_time,
+                  color: Colors.orangeAccent,
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    selectedTime == null
+                        ? 'Select shift time'
+                        : selectedTime.format(context),
+                    style: const TextStyle(color: Colors.white),
+                  ),
+                ),
+              ],
+            ),
+          ),
         ),
       ],
     );
