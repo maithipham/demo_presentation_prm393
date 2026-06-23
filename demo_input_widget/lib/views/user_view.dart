@@ -89,16 +89,11 @@ class UserView extends ConsumerWidget {
             Container(
               padding: const EdgeInsets.all(16),
               color: const Color(0xFF0F172A),
-              child: TextField(
-                style: const TextStyle(color: Colors.white),
-                decoration: InputDecoration(
+              child: TextField (
+                decoration: InputDecoration (
                   hintText: 'Search user by name or username...',
-                  hintStyle: const TextStyle(color: Colors.white38),
-                  prefixIcon: const Icon(Icons.search, color: Colors.cyanAccent),
-                  filled: true,
-                  fillColor: const Color(0xFF1E293B),
-                  enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
-                  focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Colors.cyanAccent)),
+                  prefixIcon: Icon (Icons.search),
+                  border: OutlineInputBorder (),
                 ),
                 onChanged: (value) => ref.read(nameProvider.notifier).state = value,
               ),
@@ -175,7 +170,7 @@ class UserView extends ConsumerWidget {
                         itemCount: filteredUsers.length,
                         itemBuilder: (context, index) {
                           final user = filteredUsers[index];
-                          return _buildUserCard(context, ref, user, isHiddenEmail);
+                          return _buildUserCard(context, ref, user, isHiddenEmail, index+1);
                         },
                       ),
                     );
@@ -225,124 +220,157 @@ class UserView extends ConsumerWidget {
     );
   }
 
-  Widget _buildUserCard(BuildContext context, WidgetRef ref, User user, bool isHiddenEmail) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      decoration: BoxDecoration(
-        color: const Color(0xFF1E293B),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white.withAlpha(12)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withAlpha(25),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: ListTile(
-        contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-        leading: CircleAvatar(
-          radius: 26,
-          backgroundColor: Colors.cyanAccent.withAlpha(25),
-          child: Text(
-            user.name.isNotEmpty ? user.name.substring(0, 2).toUpperCase() : 'US',
-            style: const TextStyle(
-              color: Colors.cyanAccent,
-              fontWeight: FontWeight.bold,
-              fontSize: 16,
+  Widget _buildUserCard(BuildContext context, WidgetRef ref, User user, bool isHiddenEmail, int stt) {
+    return Tooltip(
+      waitDuration: const Duration(milliseconds: 300),
+      preferBelow: false,
+      message: '''
+    Name: ${user.name}
+    Username: ${user.username}
+    Email: ${user.email ?? "N/A"}
+    Phone: ${user.phone ?? "N/A"}
+    Website: ${user.website ?? "N/A"}
+    City: ${user.address?.city ?? "N/A"}
+    Company: ${user.company?.name ?? "N/A"}
+    ''',
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 16),
+        decoration: BoxDecoration(
+          color: const Color(0xFF1E293B),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: Colors.white.withAlpha(12)),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withAlpha(25),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
             ),
-          ),
+          ],
         ),
-        title: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-              decoration: BoxDecoration(
-                color: Colors.cyanAccent.withAlpha(40),
-                borderRadius: BorderRadius.circular(4),
-              ),
-              child: Text(
-                'ID: ${user.id}',
-                style: const TextStyle(
-                  color: Colors.cyanAccent,
-                  fontSize: 11,
-                  fontWeight: FontWeight.bold,
+        child: ListTile(
+          contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+          leading: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+            //
+              SizedBox(
+                width: 30,
+                child: Text(
+                  '$stt',
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    color: Colors.amberAccent,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                  ),
                 ),
               ),
-            ),
-            const SizedBox(width: 8),
-            Expanded(
+              const SizedBox(width: 8),
+            //
+            CircleAvatar(
+              radius: 26,
+              backgroundColor: Colors.cyanAccent.withAlpha(25),
               child: Text(
-                user.name,
+                user.name.isNotEmpty ? user.name.substring(0, 2).toUpperCase() : 'US',
                 style: const TextStyle(
-                  color: Colors.white,
+                  color: Colors.cyanAccent,
                   fontWeight: FontWeight.bold,
                   fontSize: 16,
                 ),
-                overflow: TextOverflow.ellipsis,
               ),
             ),
           ],
-        ),
-        subtitle: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const SizedBox(height: 4),
-
-            Text(
-              '@${user.username}',
-              style: const TextStyle(
-                color: Colors.white54,
-                fontSize: 13,
-              ),
-            ),
-
-            Text(
-              'Birth: ${user.birthDate}',
-              style: const TextStyle(
-                color: Colors.orangeAccent,
-                fontSize: 12,
-              ),
-            ),
-
-            Text(
-              'Shift: ${user.shiftStart} - ${user.shiftEnd}',
-              style: const TextStyle(
-                color: Colors.greenAccent,
-                fontSize: 12,
-              ),
-            ),
-
-            if (user.email != null) ...[
-              const SizedBox(height: 2),
-              Text(
-                isHiddenEmail
-                    ? '********@gmail.com'
-                    : user.email!,
-                style: TextStyle(
-                  color: Colors.cyanAccent,
-                  fontSize: 12,
-                  fontStyle: isHiddenEmail
-                      ? FontStyle.italic
-                      : FontStyle.normal,
+          ),
+          title: Row(
+            children: [
+              // Container(
+              //   padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+              //   decoration: BoxDecoration(
+              //     color: Colors.cyanAccent.withAlpha(40),
+              //     borderRadius: BorderRadius.circular(4),
+              //   ),
+              //   child: Text(
+              //     'ID: ${user.id}',
+              //     style: const TextStyle(
+              //       color: Colors.cyanAccent,
+              //       fontSize: 11,
+              //       fontWeight: FontWeight.bold,
+              //     ),
+              //   ),
+              // ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  user.name,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                  ),
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
             ],
-          ],
-        ),
-        trailing: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            IconButton(
-              icon: const Icon(Icons.edit_outlined, color: Colors.amberAccent),
-              onPressed: () => _showUserDialog(context, ref, user: user),
-            ),
-            IconButton(
-              icon: const Icon(Icons.delete_outline, color: Colors.redAccent),
-              onPressed: () => _deleteUser(context, ref, user),
-            ),
-          ],
+          ),
+          subtitle: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const SizedBox(height: 4),
+      
+              Text(
+                '@${user.username}',
+                style: const TextStyle(
+                  color: Colors.white54,
+                  fontSize: 13,
+                ),
+              ),
+      
+              Text(
+                'Birth: ${user.birthDate}',
+                style: const TextStyle(
+                  color: Colors.orangeAccent,
+                  fontSize: 12,
+                ),
+              ),
+      
+              Text(
+                'Shift: ${user.shiftStart} - ${user.shiftEnd}',
+                style: const TextStyle(
+                  color: Colors.greenAccent,
+                  fontSize: 12,
+                ),
+              ),
+      
+              if (user.email != null) ...[
+                const SizedBox(height: 2),
+                Text(
+                  isHiddenEmail
+                      ? '********@gmail.com'
+                      : user.email!,
+                  style: TextStyle(
+                    color: Colors.cyanAccent,
+                    fontSize: 12,
+                    fontStyle: isHiddenEmail
+                        ? FontStyle.italic
+                        : FontStyle.normal,
+                  ),
+                ),
+              ],
+            ],
+          ),
+          trailing: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              IconButton(
+                icon: const Icon(Icons.edit_outlined, color: Colors.amberAccent),
+                onPressed: () => _showUserDialog(context, ref, user: user),
+              ),
+              IconButton(
+                icon: const Icon(Icons.delete_outline, color: Colors.redAccent),
+                onPressed: () => _deleteUser(context, ref, user),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -352,6 +380,7 @@ class UserView extends ConsumerWidget {
     final nameController = TextEditingController(text: user?.name ?? '');
     final usernameController = TextEditingController(text: user?.username ?? '');
     final emailController = TextEditingController(text: user?.email ?? '');
+    Company? selectedCompany = user?.company;
 
     // 1. TẠO KEY ĐỂ QUẢN LÝ FORM VALIDATION
     final formKey = GlobalKey<FormState>();
@@ -377,6 +406,14 @@ class UserView extends ConsumerWidget {
                   _buildTextField(usernameController, 'Username (Required)', Icons.alternate_email),
                   const SizedBox(height: 16),
                   _buildTextField(emailController, 'Email (Optional)', Icons.email_outlined),
+                  StatefulBuilder(
+                    builder: (context, setState) {
+                      return _buildCompanyField(selectedCompany, (value) {
+                        setState(() {selectedCompany = value!;});
+                      },
+                      );
+                    },
+                  ),
                 ],
               ),
             ),
@@ -402,11 +439,10 @@ class UserView extends ConsumerWidget {
                   );
                   return;
                 }
-                // 3. THAY THẾ ĐOẠN IF CHECK CŨ BẰNG FORM VALIDATION
                 // Nếu các TextFormField báo có lỗi (trống dữ liệu), hàm sẽ dừng lại tại đây và tự hiện viền đỏ
-                // if (!formKey.currentState!.validate()) {
-                //   return;
-                // }
+                if (!formKey.currentState!.validate()) {
+                  return;
+                }
 
                 Navigator.pop(context);
 
@@ -494,16 +530,79 @@ class UserView extends ConsumerWidget {
           borderRadius: BorderRadius.circular(12),
           borderSide: const BorderSide(color: Colors.cyanAccent),
         ),
-        // Thêm hiển thị viền đỏ khi có lỗi validation
-        errorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: Colors.redAccent),
-        ),
-        focusedErrorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: Colors.redAccent, width: 2),
-        ),
       ),
+    );
+  }
+
+  Widget _buildCompanyField(
+      Company? selectedCompany,
+      Function(Company?) onChanged,
+      ) {
+    final companyA = Company(name: 'Company A');
+    final companyB = Company(name: 'Company B');
+
+    return FormField<Company>(
+      initialValue: selectedCompany,
+
+      validator: (value) {
+        if (value == null) {
+          return 'Please select a company';
+        }
+        return null;
+      },
+
+      builder: (state) {
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+
+            const Text(
+              'Company',
+              style: TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+
+            RadioListTile<Company>(
+              value: companyA,
+              groupValue: state.value,
+              title: const Text(
+                'Company A',
+                style: TextStyle(color: Colors.white),
+              ),
+              onChanged: (value) {
+                state.didChange(value);
+                onChanged(value);
+              },
+            ),
+
+            RadioListTile<Company>(
+              value: companyB,
+              groupValue: state.value,
+              title: const Text(
+                'Company B',
+                style: TextStyle(color: Colors.white),
+              ),
+              onChanged: (value) {
+                state.didChange(value);
+                onChanged(value);
+              },
+            ),
+
+            if (state.hasError)
+              Padding(
+                padding: const EdgeInsets.only(left: 16),
+                child: Text(
+                  state.errorText!,
+                  style: const TextStyle(
+                    color: Colors.redAccent,
+                  ),
+                ),
+              ),
+          ],
+        );
+      },
     );
   }
 

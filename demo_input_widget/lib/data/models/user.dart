@@ -179,4 +179,17 @@ class Company {
       if (bs != null) 'bs': bs,
     };
   }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        other is Company &&
+            name == other.name &&
+            catchPhrase == other.catchPhrase &&
+            bs == other.bs;
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(name, catchPhrase, bs);
 }
