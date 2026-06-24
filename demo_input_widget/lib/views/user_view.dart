@@ -15,29 +15,40 @@ class UserView extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final userListAsync = ref.watch(userViewModelProvider);
-// Đọc toàn bộ trạng thái bộ lọc từ input_viewmodel
+    // Đọc toàn bộ trạng thái bộ lọc từ input_viewmodel
     final searchQuery = ref.watch(nameProvider).toLowerCase();
     final selectedCity = ref.watch(cityProvider);
-    final onlyWithEmail = ref.watch(notificationProvider);
+    final onlyWithEmail = ref.watch(isLightThemeProvider);
     final currentAgeFilter = ref.watch(ageProvider);
     final salaryRange = ref.watch(salaryProvider);
+    //An
     final selectedGender = ref.watch(genderProvider);
     final isHiddenEmail = ref.watch(agreeProvider);
+    final isLightTheme = ref.watch(isLightThemeProvider);
+    final backgroundColor = isLightTheme
+        ? const Color(0xFFF5F7FA)
+        : const Color(0xFF0F172A);
+    final panelColor = isLightTheme ? Colors.white : const Color(0xFF1E293B);
+    final textColor = isLightTheme ? Colors.black87 : Colors.white;
+    final subTextColor = isLightTheme ? Colors.black54 : Colors.white54;
+
     final filterDate = ref.watch(selectedDateProvider);
     final filterTime = ref.watch(selectedTimeProvider);
 
     return Scaffold(
-      backgroundColor: const Color(0xFF0F172A), // Modern dark slate background
+      backgroundColor: backgroundColor,
       appBar: AppBar(
-        title: const Text(
+        title: Text(
           'User Directory (CRUD Demo)',
-          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
+          style: TextStyle(fontWeight: FontWeight.bold, color: isLightTheme ? Colors.black : Colors.white,),
         ),
-        backgroundColor: const Color(0xFF1E293B),
+        backgroundColor: panelColor,
         elevation: 0,
         actions: [
           IconButton(
-            icon: const Icon(Icons.refresh, color: Colors.cyanAccent),
+            icon: Icon(Icons.refresh, color: isLightTheme
+                ? Colors.black
+                : Colors.cyanAccent,),
             onPressed: () => ref.read(userViewModelProvider.notifier).refresh(),
           ),
         ],
@@ -48,8 +59,8 @@ class UserView extends ConsumerWidget {
           // ==================== 1. THANH BÊN TRÁI: SIDEBAR FILTER ====================
           Container(
             width: 340,
-            decoration: const BoxDecoration(
-              color: Color(0xFF1E293B),
+            decoration: BoxDecoration(
+              color: panelColor,
               border: Border(right: BorderSide(color: Colors.white10)),
             ),
             child: SingleChildScrollView(
@@ -57,157 +68,196 @@ class UserView extends ConsumerWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
+                  Text(
                     'FILTERS PANEL',
-                    style: TextStyle(color: Colors.cyanAccent, fontWeight: FontWeight.bold, fontSize: 16),
+                    style: TextStyle(
+                      color: isLightTheme
+                          ? Colors.black
+                          : Colors.cyanAccent,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                    ),
                   ),
                   const Divider(color: Colors.white24, height: 24),
 
-        // 1. DROPDOWN + DROPDOWNFORMFIELD
+                  // 1. DROPDOWN + DROPDOWNFORMFIELD
                   const CustomDropdown(),
                   const Divider(color: Colors.white10, height: 32),
 
-        // 2. CHECKBOX + RADIO + SWITCH
+                  // 2. CHECKBOX + RADIO + SWITCH
                   const CheckboxRadioSwitch(),
                   const Divider(color: Colors.white10, height: 32),
 
-        // 3. SLIDER + RANGESLIDER
+                  // 3. SLIDER + RANGESLIDER
                   const CustomSliderWidget(),
                   const Divider(color: Colors.white10, height: 32),
 
-        // 4. DATEPICKER + TIMEPICKER
+                  // 4. DATEPICKER + TIMEPICKER
                   const CustomDatePicker(),
                 ],
               ),
             ),
           ),
-      // ==================== 2. Ở GIỮA & BÊN PHẢI: TRÊN SEARCH, DƯỚI LIST ====================
-      Expanded(
-        child: Column(
-          children: [
-            // THANH SEARCH TRÊN CÙNG
-            Container(
-              padding: const EdgeInsets.all(16),
-              color: const Color(0xFF0F172A),
-              child: TextField (
-                decoration: InputDecoration (
-                  hintText: 'Search user by name or username...',
-                  prefixIcon: Icon (Icons.search),
-                  border: OutlineInputBorder (),
+          // ==================== 2. Ở GIỮA & BÊN PHẢI: TRÊN SEARCH, DƯỚI LIST ====================
+          Expanded(
+            child: Column(
+              children: [
+                // THANH SEARCH TRÊN CÙNG
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  color: backgroundColor,
+                  child: TextField(
+                    decoration: InputDecoration(
+                      hintText: 'Search user by name or username...',
+                      prefixIcon: Icon(Icons.search),
+                      border: OutlineInputBorder(),
+                    ),
+                    onChanged: (value) =>
+                        ref.read(nameProvider.notifier).state = value,
+                  ),
                 ),
-                onChanged: (value) => ref.read(nameProvider.notifier).state = value,
-              ),
-            ),
-              Expanded(
-                child: userListAsync.when(
-                  data: (users) {
-                    // BƯỚC 1: Lấy các giá trị đang nhập từ các ô lọc trên UI
-                    final searchQuery = ref.watch(nameProvider).toLowerCase();
-                    final selectedCity = ref.watch(cityProvider);
-                    final onlyWithEmail = ref.watch(notificationProvider);
+                Expanded(
+                  child: userListAsync.when(
+                    data: (users) {
+                      // BƯỚC 1: Lấy các giá trị đang nhập từ các ô lọc trên UI
+                      final searchQuery = ref.watch(nameProvider).toLowerCase();
+                      final selectedCity = ref.watch(cityProvider);
+                      final onlyWithEmail = ref.watch(notificationProvider);
 
-                    // BƯỚC 2: Thực hiện lọc mảng dữ liệu users gốc dựa trên điều kiện bạn muốn
-                    final filteredUsers = users.where((user) {
-                      // Lọc theo ký tự tìm kiếm của TextField (Tìm cả Name và Username)
-                      final matchesSearch = user.name.toLowerCase().contains(searchQuery) ||
-                          user.username.toLowerCase().contains(searchQuery);
+                      // BƯỚC 2: Thực hiện lọc mảng dữ liệu users gốc dựa trên điều kiện bạn muốn
+                      final filteredUsers = users.where((user) {
+                        // Lọc theo ký tự tìm kiếm của TextField (Tìm cả Name và Username)
+                        final matchesSearch =
+                            user.name.toLowerCase().contains(searchQuery) ||
+                            user.username.toLowerCase().contains(searchQuery);
 
-                      // Lọc theo Thành phố được chọn từ Dropdown (Nếu chưa chọn dropdown thì bỏ qua)
-                      final matchesCity = selectedCity == null ||
-                          (user.address?.city == selectedCity);
+                        // Lọc theo Thành phố được chọn từ Dropdown (Nếu chưa chọn dropdown thì bỏ qua)
+                        final matchesCity =
+                            selectedCity == null ||
+                            (user.address?.city == selectedCity);
 
-                      // Lọc theo nút Switch (Nếu bật switch thì chỉ giữ lại các user có email)
-                      final matchesEmail = !onlyWithEmail || (user.email != null && user.email!.isNotEmpty);
+                        // Lọc theo nút Switch (Nếu bật switch thì chỉ giữ lại các user có email)
+                        final matchesEmail =
+                            !onlyWithEmail ||
+                            (user.email != null && user.email!.isNotEmpty);
 
+                        // Lọc theo Slider: Lấy ra người dùng có ID < currentAgeFilter
+                        final matchesAge = user.id < currentAgeFilter;
+                        // Lọc theo RangeSlider: Lấy ra người dùng theo ID từ salaryRange.start đến salaryRange.end
+                        final matchesSalary =
+                            user.id >= salaryRange.start &&
+                            user.id <= salaryRange.end;
+                        // Lọc theo Radio: Lấy ra người dùng theo giới tính được chọn
+                        final matchesGender =
+                            selectedGender == 'All' ||
+                                user.gender == selectedGender;
 
-                      // Lọc theo Slider: Lấy ra người dùng có ID < currentAgeFilter
-                      final matchesAge = user.id < currentAgeFilter;
-                      // Lọc theo RangeSlider: Lấy ra người dùng theo ID từ salaryRange.start đến salaryRange.end
-                      final matchesSalary = user.id >= salaryRange.start && user.id <= salaryRange.end;
+                        final matchesDate =
+                            filterDate == null ||
+                            (user.birthDate != null &&
+                                user.birthDate!.year == filterDate.year &&
+                                user.birthDate!.month == filterDate.month &&
+                                user.birthDate!.day == filterDate.day);
+                        final selectedTimeString = filterTime == null
+                            ? null
+                            : '${filterTime.hour.toString().padLeft(2, '0')}:'
+                                  '${filterTime.minute.toString().padLeft(2, '0')}';
 
-                      final matchesDate =
-                          filterDate == null ||
-                              (user.birthDate != null &&
-                                  user.birthDate!.year == filterDate.year &&
-                                  user.birthDate!.month == filterDate.month &&
-                                  user.birthDate!.day == filterDate.day);
-                      final selectedTimeString =
-                      filterTime == null
-                          ? null
-                          : '${filterTime.hour.toString().padLeft(2, '0')}:'
-                          '${filterTime.minute.toString().padLeft(2, '0')}';
+                        final matchesTime =
+                            selectedTimeString == null ||
+                            user.shiftStart == selectedTimeString;
 
-                      final matchesTime =
-                          selectedTimeString == null ||
-                              user.shiftStart == selectedTimeString;
+                        return matchesSearch &&
+                            matchesCity &&
+                            matchesEmail &&
+                            matchesAge &&
+                            matchesSalary &&
+                            matchesDate &&
+                            matchesTime&&
+                            matchesGender;
+                      }).toList();
+                      //
 
-
-                      return matchesSearch &&
-                          matchesCity &&
-                          matchesEmail &&
-                          matchesAge &&
-                          matchesSalary &&
-                          matchesDate &&
-                          matchesTime;
-                    }).toList();
-                    //
-
-                    if (filteredUsers.isEmpty) {
-                      return const Center(
-                        child: Text(
-                          'No users found.',
-                          style: TextStyle(color: Colors.white54, fontSize: 16),
+                      if (filteredUsers.isEmpty) {
+                        return Center(
+                          child: Text(
+                            'No users found.',
+                            style: TextStyle(
+                              color: isLightTheme
+                                  ? Colors.black54
+                                  : Colors.white54,
+                              fontSize: 16,
+                            ),
+                          ),
+                        );
+                      }
+                      return RefreshIndicator(
+                        onRefresh: () =>
+                            ref.read(userViewModelProvider.notifier).refresh(),
+                        color: isLightTheme
+                            ? Colors.black
+                            : Colors.cyanAccent,
+                        backgroundColor: const Color(0xFF1E293B),
+                        child: ListView.builder(
+                          physics: const AlwaysScrollableScrollPhysics(),
+                          padding: const EdgeInsets.all(16.0),
+                          itemCount: filteredUsers.length,
+                          itemBuilder: (context, index) {
+                            final user = filteredUsers[index];
+                            return _buildUserCard(
+                              context,
+                              ref,
+                              user,
+                              isHiddenEmail,
+                              index + 1,
+                            );
+                          },
                         ),
                       );
-                    }
-                    return RefreshIndicator(
-                      onRefresh: () => ref.read(userViewModelProvider.notifier).refresh(),
-                      color: Colors.cyanAccent,
-                      backgroundColor: const Color(0xFF1E293B),
-                      child: ListView.builder(
-                        physics: const AlwaysScrollableScrollPhysics(),
-                        padding: const EdgeInsets.all(16.0),
-                        itemCount: filteredUsers.length,
-                        itemBuilder: (context, index) {
-                          final user = filteredUsers[index];
-                          return _buildUserCard(context, ref, user, isHiddenEmail, index+1);
-                        },
+                    },
+                    loading: () => Center(
+                      child: CircularProgressIndicator(
+                        valueColor: AlwaysStoppedAnimation<Color>(
+                          isLightTheme
+                              ? Colors.black
+                              : Colors.cyanAccent,
+                        ),
                       ),
-                    );
-                  },
-                  loading: () => const Center(
-                    child: CircularProgressIndicator(
-                      valueColor: AlwaysStoppedAnimation<Color>(Colors.cyanAccent),
                     ),
-                  ),
-                  error: (err, stack) => Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Icon(Icons.error_outline, color: Colors.redAccent, size: 48),
-                        const SizedBox(height: 16),
-                        Text(
-                          'Error: $err',
-                          style: const TextStyle(color: Colors.white70),
-                          textAlign: TextAlign.center,
-                        ),
-                        const SizedBox(height: 16),
-                        ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.cyanAccent,
-                            foregroundColor: const Color(0xFF0F172A),
+                    error: (err, stack) => Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Icon(
+                            Icons.error_outline,
+                            color: Colors.redAccent,
+                            size: 48,
                           ),
-                          onPressed: () => ref.read(userViewModelProvider.notifier).refresh(),
-                          child: const Text('Try Again'),
-                        ),
-                      ],
+                          const SizedBox(height: 16),
+                          Text(
+                            'Error: $err',
+                            style: const TextStyle(color: Colors.white70),
+                            textAlign: TextAlign.center,
+                          ),
+                          const SizedBox(height: 16),
+                          ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.cyanAccent,
+                              foregroundColor: const Color(0xFF0F172A),
+                            ),
+                            onPressed: () => ref
+                                .read(userViewModelProvider.notifier)
+                                .refresh(),
+                            child: const Text('Try Again'),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),
-              ),
               ],
-              ),
             ),
+          ),
         ],
       ),
       floatingActionButton: FloatingActionButton.extended(
@@ -220,11 +270,19 @@ class UserView extends ConsumerWidget {
     );
   }
 
-  Widget _buildUserCard(BuildContext context, WidgetRef ref, User user, bool isHiddenEmail, int stt) {
+  Widget _buildUserCard(
+    BuildContext context,
+    WidgetRef ref,
+    User user,
+    bool isHiddenEmail,
+    int stt,
+  ) {
+    final isLightTheme = ref.watch(isLightThemeProvider);
     return Tooltip(
       waitDuration: const Duration(milliseconds: 300),
       preferBelow: false,
-      message: '''
+      message:
+          '''
     Name: ${user.name}
     Username: ${user.username}
     Email: ${user.email ?? "N/A"}
@@ -236,7 +294,9 @@ class UserView extends ConsumerWidget {
       child: Container(
         margin: const EdgeInsets.only(bottom: 16),
         decoration: BoxDecoration(
-          color: const Color(0xFF1E293B),
+          color: ref.watch(isLightThemeProvider)
+              ? Colors.white
+              : const Color(0xFF1E293B),
           borderRadius: BorderRadius.circular(16),
           border: Border.all(color: Colors.white.withAlpha(12)),
           boxShadow: [
@@ -248,11 +308,14 @@ class UserView extends ConsumerWidget {
           ],
         ),
         child: ListTile(
-          contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 20,
+            vertical: 12,
+          ),
           leading: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-            //
+              //
               SizedBox(
                 width: 30,
                 child: Text(
@@ -266,20 +329,24 @@ class UserView extends ConsumerWidget {
                 ),
               ),
               const SizedBox(width: 8),
-            //
-            CircleAvatar(
-              radius: 26,
-              backgroundColor: Colors.cyanAccent.withAlpha(25),
-              child: Text(
-                user.name.isNotEmpty ? user.name.substring(0, 2).toUpperCase() : 'US',
-                style: const TextStyle(
-                  color: Colors.cyanAccent,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16,
+              //
+              CircleAvatar(
+                radius: 26,
+                backgroundColor: Colors.cyanAccent.withAlpha(25),
+                child: Text(
+                  user.name.isNotEmpty
+                      ? user.name.substring(0, 2).toUpperCase()
+                      : 'US',
+                  style: TextStyle(
+                    color: isLightTheme
+                        ? Colors.black
+                        : Colors.cyanAccent,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                  ),
                 ),
               ),
-            ),
-          ],
+            ],
           ),
           title: Row(
             children: [
@@ -302,8 +369,10 @@ class UserView extends ConsumerWidget {
               Expanded(
                 child: Text(
                   user.name,
-                  style: const TextStyle(
-                    color: Colors.white,
+                  style: TextStyle(
+                    color: ref.watch(isLightThemeProvider)
+                        ? Colors.black
+                        : Colors.white,
                     fontWeight: FontWeight.bold,
                     fontSize: 16,
                   ),
@@ -316,15 +385,15 @@ class UserView extends ConsumerWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const SizedBox(height: 4),
-      
+
               Text(
                 '@${user.username}',
-                style: const TextStyle(
-                  color: Colors.white54,
-                  fontSize: 13,
-                ),
+                style: TextStyle(color: ref.watch(isLightThemeProvider)
+                    ? Colors.black54
+                    : Colors.white54,
+                    fontSize: 13),
               ),
-      
+
               Text(
                 'Birth: ${user.birthDate}',
                 style: const TextStyle(
@@ -332,23 +401,20 @@ class UserView extends ConsumerWidget {
                   fontSize: 12,
                 ),
               ),
-      
+
               Text(
                 'Shift: ${user.shiftStart} - ${user.shiftEnd}',
-                style: const TextStyle(
-                  color: Colors.greenAccent,
-                  fontSize: 12,
-                ),
+                style: const TextStyle(color: Colors.greenAccent, fontSize: 12),
               ),
-      
+
               if (user.email != null) ...[
                 const SizedBox(height: 2),
                 Text(
-                  isHiddenEmail
-                      ? '********@gmail.com'
-                      : user.email!,
+                  isHiddenEmail ? '********@gmail.com' : user.email!,
                   style: TextStyle(
-                    color: Colors.cyanAccent,
+                    color: ref.watch(isLightThemeProvider)
+                        ? Colors.black54
+                        : Colors.white54,
                     fontSize: 12,
                     fontStyle: isHiddenEmail
                         ? FontStyle.italic
@@ -362,7 +428,10 @@ class UserView extends ConsumerWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               IconButton(
-                icon: const Icon(Icons.edit_outlined, color: Colors.amberAccent),
+                icon: const Icon(
+                  Icons.edit_outlined,
+                  color: Colors.amberAccent,
+                ),
                 onPressed: () => _showUserDialog(context, ref, user: user),
               ),
               IconButton(
@@ -378,7 +447,9 @@ class UserView extends ConsumerWidget {
 
   void _showUserDialog(BuildContext context, WidgetRef ref, {User? user}) {
     final nameController = TextEditingController(text: user?.name ?? '');
-    final usernameController = TextEditingController(text: user?.username ?? '');
+    final usernameController = TextEditingController(
+      text: user?.username ?? '',
+    );
     final emailController = TextEditingController(text: user?.email ?? '');
     Company? selectedCompany = user?.company;
 
@@ -390,10 +461,15 @@ class UserView extends ConsumerWidget {
       builder: (context) {
         return AlertDialog(
           backgroundColor: const Color(0xFF1E293B),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
           title: Text(
             user == null ? 'Add New User' : 'Edit User',
-            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+            style: const TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+            ),
           ),
           content: SingleChildScrollView(
             child: Form(
@@ -401,17 +477,30 @@ class UserView extends ConsumerWidget {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  _buildTextField(nameController, 'Name (Required)', Icons.person),
+                  _buildTextField(
+                    nameController,
+                    'Name (Required)',
+                    Icons.person,
+                  ),
                   const SizedBox(height: 16),
-                  _buildTextField(usernameController, 'Username (Required)', Icons.alternate_email),
+                  _buildTextField(
+                    usernameController,
+                    'Username (Required)',
+                    Icons.alternate_email,
+                  ),
                   const SizedBox(height: 16),
-                  _buildTextField(emailController, 'Email (Optional)', Icons.email_outlined),
+                  _buildTextField(
+                    emailController,
+                    'Email (Optional)',
+                    Icons.email_outlined,
+                  ),
                   StatefulBuilder(
                     builder: (context, setState) {
                       return _buildCompanyField(selectedCompany, (value) {
-                        setState(() {selectedCompany = value!;});
-                      },
-                      );
+                        setState(() {
+                          selectedCompany = value!;
+                        });
+                      });
                     },
                   ),
                 ],
@@ -421,7 +510,10 @@ class UserView extends ConsumerWidget {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text('Cancel', style: TextStyle(color: Colors.white54)),
+              child: const Text(
+                'Cancel',
+                style: TextStyle(color: Colors.white54),
+              ),
             ),
             ElevatedButton(
               style: ElevatedButton.styleFrom(
@@ -435,7 +527,9 @@ class UserView extends ConsumerWidget {
 
                 if (name.isEmpty || username.isEmpty) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Please fill all required fields')),
+                    const SnackBar(
+                      content: Text('Please fill all required fields'),
+                    ),
                   );
                   return;
                 }
@@ -455,10 +549,14 @@ class UserView extends ConsumerWidget {
                       username: username,
                       email: email.isNotEmpty ? email : null,
                     );
-                    await ref.read(userViewModelProvider.notifier).addUser(newCreatedUser);
+                    await ref
+                        .read(userViewModelProvider.notifier)
+                        .addUser(newCreatedUser);
                     if (context.mounted) {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('User added successfully!')),
+                        const SnackBar(
+                          content: Text('User added successfully!'),
+                        ),
                       );
                     }
                   } else {
@@ -479,12 +577,17 @@ class UserView extends ConsumerWidget {
                       birthDate: user.birthDate,
                       shiftStart: user.shiftStart,
                       shiftEnd: user.shiftEnd,
-                      themeMode: user.themeMode, // Giữ nguyên cấu hình theme cũ của họ
+                      themeMode:
+                          user.themeMode, // Giữ nguyên cấu hình theme cũ của họ
                     );
-                    await ref.read(userViewModelProvider.notifier).updateUser(updatedUser);
+                    await ref
+                        .read(userViewModelProvider.notifier)
+                        .updateUser(updatedUser);
                     if (context.mounted) {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('User updated successfully!')),
+                        const SnackBar(
+                          content: Text('User updated successfully!'),
+                        ),
                       );
                     }
                   }
@@ -504,7 +607,12 @@ class UserView extends ConsumerWidget {
     );
   }
 
-  Widget _buildTextField(TextEditingController controller, String label, IconData icon, {bool isRequired = true}) {
+  Widget _buildTextField(
+    TextEditingController controller,
+    String label,
+    IconData icon, {
+    bool isRequired = true,
+  }) {
     return TextFormField(
       controller: controller,
       style: const TextStyle(color: Colors.white),
@@ -535,9 +643,9 @@ class UserView extends ConsumerWidget {
   }
 
   Widget _buildCompanyField(
-      Company? selectedCompany,
-      Function(Company?) onChanged,
-      ) {
+    Company? selectedCompany,
+    Function(Company?) onChanged,
+  ) {
     final companyA = Company(name: 'Company A');
     final companyB = Company(name: 'Company B');
 
@@ -555,7 +663,6 @@ class UserView extends ConsumerWidget {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-
             const Text(
               'Company',
               style: TextStyle(
@@ -595,9 +702,7 @@ class UserView extends ConsumerWidget {
                 padding: const EdgeInsets.only(left: 16),
                 child: Text(
                   state.errorText!,
-                  style: const TextStyle(
-                    color: Colors.redAccent,
-                  ),
+                  style: const TextStyle(color: Colors.redAccent),
                 ),
               ),
           ],
@@ -611,15 +716,27 @@ class UserView extends ConsumerWidget {
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: const Color(0xFF1E293B),
-        title: const Text('Delete User', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-        content: Text('Are you sure you want to delete ${user.name}?', style: const TextStyle(color: Colors.white70)),
+        title: const Text(
+          'Delete User',
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+        ),
+        content: Text(
+          'Are you sure you want to delete ${user.name}?',
+          style: const TextStyle(color: Colors.white70),
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel', style: TextStyle(color: Colors.white54)),
+            child: const Text(
+              'Cancel',
+              style: TextStyle(color: Colors.white54),
+            ),
           ),
           ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent, foregroundColor: Colors.white),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.redAccent,
+              foregroundColor: Colors.white,
+            ),
             onPressed: () => Navigator.pop(context, true),
             child: const Text('Delete'),
           ),
@@ -637,9 +754,9 @@ class UserView extends ConsumerWidget {
         }
       } catch (e) {
         if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Failed to delete user: $e')),
-          );
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text('Failed to delete user: $e')));
         }
       }
     }

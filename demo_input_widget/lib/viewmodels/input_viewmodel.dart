@@ -12,6 +12,8 @@ final agreeProvider = StateProvider<bool>((ref) => false);
 final genderProvider = StateProvider<String>((ref) => 'All');
 
 final notificationProvider = StateProvider<bool>((ref) => false);
+// An dart/light mode theme provider
+final isLightThemeProvider = StateProvider<bool>((ref) => false);
 
 final ageProvider = StateProvider<double>((ref) => 11);
 

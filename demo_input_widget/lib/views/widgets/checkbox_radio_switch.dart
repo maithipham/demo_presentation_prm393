@@ -9,43 +9,65 @@ class CheckboxRadioSwitch extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final selectedGender = ref.watch(genderProvider);
     final isHiddenEmail = ref.watch(agreeProvider);
-    final isLightTheme = ref.watch(notificationProvider);
+    final isLightTheme = ref.watch(isLightThemeProvider);
+
+    final primaryTextColor =
+    isLightTheme ? Colors.black87 : Colors.white;
+
+    final secondaryTextColor =
+    isLightTheme ? Colors.black54 : Colors.white54;
+
+    final tertiaryTextColor =
+    isLightTheme ? Colors.black87 : Colors.white70;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text('Status & Demographics',
+         Text(
+          'Status & Demographics',
           style: TextStyle(
-            color: Colors.cyanAccent,
+            color: isLightTheme
+                ? Colors.black
+                : Colors.cyanAccent,
             fontWeight: FontWeight.bold,
           ),
         ),
+
         const SizedBox(height: 8),
 
-        // Checkbox
+        // ================= CHECKBOX =================
         CheckboxListTile(
+          dense: true,
           contentPadding: EdgeInsets.zero,
-          title: const Text(
+          controlAffinity: ListTileControlAffinity.trailing,
+
+          title: Text(
             'Hidden email',
             style: TextStyle(
-              color: Colors.white70,
+              color: tertiaryTextColor,
               fontSize: 14,
             ),
           ),
+
           value: isHiddenEmail,
+
           activeColor: Colors.cyanAccent,
+
+          checkColor: Colors.black,
+
           onChanged: (value) {
-            ref.read(agreeProvider.notifier).state = value ?? false;
+            ref.read(agreeProvider.notifier).state =
+                value ?? false;
           },
         ),
 
         const SizedBox(height: 8),
 
-        // Radio
-        const Text(
+        // ================= RADIO =================
+        Text(
           'Gender',
           style: TextStyle(
-            color: Colors.white54,
+            color: secondaryTextColor,
             fontSize: 13,
           ),
         ),
@@ -54,83 +76,114 @@ class CheckboxRadioSwitch extends ConsumerWidget {
           children: [
             Expanded(
               child: RadioListTile<String>(
+                dense: true,
                 contentPadding: EdgeInsets.zero,
-                title: const Text(
+                visualDensity: VisualDensity.compact,
+
+                title: Text(
                   'All',
                   style: TextStyle(
-                    color: Colors.white,
+                    color: primaryTextColor,
                     fontSize: 12,
                   ),
                 ),
+
                 value: 'All',
                 groupValue: selectedGender,
                 activeColor: Colors.cyanAccent,
+
                 onChanged: (value) {
-                  ref.read(genderProvider.notifier).state = value!;
+                  ref.read(genderProvider.notifier).state =
+                  value!;
                 },
               ),
             ),
+
             Expanded(
               child: RadioListTile<String>(
+                dense: true,
                 contentPadding: EdgeInsets.zero,
-                title: const Text(
+                visualDensity: VisualDensity.compact,
+
+                title: Text(
                   'Male',
                   style: TextStyle(
-                    color: Colors.white,
+                    color: primaryTextColor,
                     fontSize: 12,
                   ),
                 ),
+
                 value: 'Male',
                 groupValue: selectedGender,
                 activeColor: Colors.cyanAccent,
+
                 onChanged: (value) {
-                  ref.read(genderProvider.notifier).state = value!;
+                  ref.read(genderProvider.notifier).state =
+                  value!;
                 },
               ),
             ),
+
             Expanded(
               child: RadioListTile<String>(
+                dense: true,
                 contentPadding: EdgeInsets.zero,
-                title: const Text(
+                visualDensity: VisualDensity.compact,
+
+                title: Text(
                   'Female',
                   style: TextStyle(
-                    color: Colors.white,
+                    color: primaryTextColor,
                     fontSize: 12,
                   ),
                 ),
+
                 value: 'Female',
                 groupValue: selectedGender,
                 activeColor: Colors.cyanAccent,
+
                 onChanged: (value) {
-                  ref.read(genderProvider.notifier).state = value!;
+                  ref.read(genderProvider.notifier).state =
+                  value!;
                 },
               ),
             ),
           ],
         ),
 
-        // Switch
+        const SizedBox(height: 8),
+
+        // ================= SWITCH =================
         SwitchListTile(
+          dense: true,
           contentPadding: EdgeInsets.zero,
-          title: const Text(
+
+          title: Text(
             'Light Theme',
             style: TextStyle(
-              color: Colors.white70,
+              color: tertiaryTextColor,
               fontSize: 14,
             ),
           ),
+
           secondary: Icon(
             isLightTheme
                 ? Icons.light_mode
                 : Icons.dark_mode,
             color: isLightTheme
-                ? Colors.amberAccent
+                ? Colors.amber
                 : Colors.cyanAccent,
           ),
+
           value: isLightTheme,
-          activeColor: Colors.amberAccent,
+
+          activeTrackColor: Colors.cyanAccent,
+
+          activeColor: Colors.white,
+
           onChanged: (value) {
-            ref.read(notificationProvider.notifier).state = value;
+            ref.read(isLightThemeProvider.notifier).state =
+                value;
           },
         ),
       ],

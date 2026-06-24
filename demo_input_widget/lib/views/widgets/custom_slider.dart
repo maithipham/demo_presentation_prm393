@@ -14,11 +14,21 @@ class CustomSliderWidget extends ConsumerWidget {
     final maxId = ref.watch(ageProvider);
     final range = ref.watch(salaryProvider);
 
+    // ==================== FIX: Đọc trạng thái Light/Dark Mode ====================
+    final isLightTheme = ref.watch(isLightThemeProvider);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Lọc theo ID tối đa (Slider): ID < ${maxId.round()}'
-            , style: const TextStyle(color: Colors.white)),
+        // ==================== FIX: Đổi màu chữ theo Theme ====================
+        Text(
+          'Lọc theo ID tối đa (Slider): ID < ${maxId.round()}',
+          style: TextStyle(
+            color: isLightTheme
+                ? Colors.black87 // Light Mode
+                : Colors.white,  // Dark Mode
+          ),
+        ),
         Slider(
           value: maxId,
           min: 1,
@@ -26,8 +36,15 @@ class CustomSliderWidget extends ConsumerWidget {
           onChanged: (val) => ref.read(ageProvider.notifier).state = val,
         ),
 
-        Text('Lọc theo ID trong khoảng (Range): ID: ${range.start.round()} - ${range.end.round()}'
-            , style: const TextStyle(color: Colors.white)),
+        // ==================== FIX: Đổi màu chữ theo Theme ====================
+        Text(
+          'Lọc theo ID trong khoảng (Range): ID: ${range.start.round()} - ${range.end.round()}',
+          style: TextStyle(
+            color: isLightTheme
+                ? Colors.black87 // Light Mode
+                : Colors.white,  // Dark Mode
+          ),
+        ),
         RangeSlider(
           values: range,
           min: 1, max: maxSize, divisions: maxSize.toInt() - 1,

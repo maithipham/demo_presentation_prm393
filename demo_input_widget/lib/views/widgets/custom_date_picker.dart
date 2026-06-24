@@ -9,14 +9,18 @@ class CustomDatePicker extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final selectedDate = ref.watch(selectedDateProvider);
     final selectedTime = ref.watch(selectedTimeProvider);
+    // Read the light theme state(An)
+    final isLightTheme = ref.watch(isLightThemeProvider);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
+        Text(
           'DATE & TIME FILTER',
           style: TextStyle(
-            color: Colors.cyanAccent,
+            color: isLightTheme
+                ? Colors.black
+                : Colors.cyanAccent,
             fontWeight: FontWeight.bold,
           ),
         ),
@@ -38,9 +42,11 @@ class CustomDatePicker extends ConsumerWidget {
           child: Container(
             padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
-              color: const Color(0xFF0F172A),
+              color: isLightTheme
+                  ? Colors.white
+                  : Colors.blueGrey,
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.white10),
+              border: Border.all(color: Colors.black26),
             ),
             child: Row(
               children: [
@@ -54,7 +60,9 @@ class CustomDatePicker extends ConsumerWidget {
                     selectedDate == null
                         ? 'Select birth date'
                         : '${selectedDate.day}/${selectedDate.month}/${selectedDate.year}',
-                    style: const TextStyle(color: Colors.white),
+                    style: TextStyle(color: isLightTheme
+                        ? Colors.black87
+                        : Colors.white,),
                   ),
                 ),
               ],
@@ -77,9 +85,11 @@ class CustomDatePicker extends ConsumerWidget {
           child: Container(
             padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
-              color: const Color(0xFF0F172A),
+              color: isLightTheme
+                  ? Colors.white
+                  : Colors.blueGrey,
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.white10),
+              border: Border.all(color: Colors.black26),
             ),
             child: Row(
               children: [
@@ -93,7 +103,9 @@ class CustomDatePicker extends ConsumerWidget {
                     selectedTime == null
                         ? 'Select shift time'
                         : selectedTime.format(context),
-                    style: const TextStyle(color: Colors.white),
+                    style: TextStyle(color: isLightTheme
+                        ? Colors.black87
+                        : Colors.white,),
                   ),
                 ),
               ],
